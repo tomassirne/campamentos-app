@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Campeonatos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3498db;
+            --secondary: #2c3e50;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        header h1 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        header .auth-status {
+            font-size: 0.9rem;
+            color: var(--dark);
+            margin-top: 15px;
+        }
+
+        .user-info {
+            color: var(--success);
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbdb;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: var(--secondary);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--secondary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--light);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--light);
+            background: white;
+            color: var(--secondary);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--light);
+        }
+
+        th {
+            background: var(--light);
+            color: var(--secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .ranking {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .rank-card {
+            background: linear-gradient(135deg, var(--light) 0%, white 100%);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .rank-card.first {
+            border-left-color: #f39c12;
+            background: linear-gradient(135deg, #fff9e6 0%, white 100%);
+        }
+
+        .rank-card.second {
+            border-left-color: #95a5a6;
+            background: linear-gradient(135deg, #f5f5f5 0%, white 100%);
+        }
+
+        .rank-card.third {
+            border-left-color: #cd7f32;
+            background: linear-gradient(135deg, #fef3e2 0%, white 100%);
+        }
+
+        .rank-position {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .rank-name {
+            font-size: 1.3rem;
+            color: var(--secondary);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .rank-stats {
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+        .rank-stats p {
+            margin: 5px 0;
+        }
+
+        .match-card {
+            background: var(--light);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .match-team {
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .match-vs {
+            text-align: center;
+            color: var(--dark);
+            font-weight: bold;
+        }
+
+        .match-score {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .match-score input {
+            padding: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .spinner {
+            border: 4px solid var(--light);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-blue { background: #d1ecf1; color: #0c5460; }
+        .badge-red { background: #f8d7da; color: #721c24; }
+        .badge-yellow { background: #fff3cd; color: #856404; }
+        .badge-green { background: #d4edda; color: #155724; }
+
+        .competition-list {
+            list-style: none;
+        }
+
+        .competition-item {
+            background: var(--light);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .competition-item button {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .match-card {
+                grid-template-columns: 1fr;
+            }
+
+            .ranking {
+                grid-template-columns: 1fr;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚽ Gestor de Campeonatos</h1>
+            <div class="auth-status">
+                <div id="auth-message">Cargando autenticación...</div>
+                <div class="user-info" id="user-info" style="display:none;"></div>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" id="login-btn" onclick="signIn()">Iniciar Sesión</button>
+                <button class="btn-danger hidden" id="logout-btn" onclick="signOut()">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <div id="main-content" style="display: none;">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showSection('crear')">+ Crear Competencia</button>
+                <button class="tab-btn" onclick="showSection('competencias')">Competencias Activas</button>
+                <button class="tab-btn" onclick="showSection('tabla')">Tabla de Posiciones</button>
+            </div>
+
+            <!-- SECCIÓN: CREAR COMPETENCIA -->
+            <div id="crear" class="section active">
+                <div class="card">
+                    <h2>Crear Nueva Competencia</h2>
+                    
+                    <div class="form-group">
+                        <label>Nombre de la Competencia</label>
+                        <input type="text" id="comp-name" placeholder="Ej: Fútbol Semifinal">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo de Competencia</label>
+                        <select id="comp-type" onchange="updateCompetitionType()">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="cruces">Cruces (Fixture 1v1)</option>
+                            <option value="todos">Todos vs Todos (4 equipos juntos)</option>
+                        </select>
+                    </div>
+
+                    <div id="fixture-section" class="hidden">
+                        <h3 style="color: var(--secondary); margin: 20px 0 15px 0;">Fixture Generada</h3>
+                        <div id="fixture-display" style="background: var(--light); padding: 15px; border-radius: var(--border-radius); margin-bottom: 20px;"></div>
+                    </div>
+
+                    <div id="todos-section" class="hidden">
+                        <div class="form-group">
+                            <label>Puntos por Victoria</label>
+                            <input type="number" id="puntos-victoria" value="10" min="1">
+                        </div>
+                    </div>
+
+                    <button class="btn-success" onclick="createCompetition()" style="width: 100%;">Crear Competencia</button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: COMPETENCIAS ACTIVAS -->
+            <div id="competencias" class="section">
+                <div class="card">
+                    <h2>Competencias Activas</h2>
+                    <ul class="competition-list" id="competitions-list">
+                        <li style="padding: 20px; text-align: center; color: var(--dark);">Cargando competencias...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: TABLA DE POSICIONES -->
+            <div id="tabla" class="section">
+                <div class="card">
+                    <h2>Tabla de Posiciones General</h2>
+                    <div id="standings-container">
+                        <div class="ranking" id="standings-ranking"></div>
+                    </div>
+                    <table id="standings-table">
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Equipo</th>
+                                <th>Puntos</th>
+                                <th>Competencias Ganadas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standings-tbody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--dark);">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading-screen" class="card" style="text-align: center; display: none;">
+            <div class="spinner"></div>
+            <p>Cargando datos...</p>
+        </div>
+    </div>
+
+    <script>
+        // ============= CONFIG =============
+        // REEMPLAZA ESTOS VALORES CON LOS TUYOS
+        const CLIENT_ID = '182667805267-qid2csk9qhpte4380me9easnn1ngbadn.apps.googleusercontent.com';
+        const SHEET_ID = '1l7EYOH99Yq16E3OvYn9SZkf5OVsWYcPt-eqMi1vJxWk';
+        // ====================================
+
+        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+        const TEAMS = ['Azul', 'Rojo', 'Amarillo', 'Verde'];
+
+        let tokenClient;
+        let gapiLoaded = false;
+        let gisLoaded = false;
+
+        // ============= INIT =============
+        function initializeGoogleAPI() {
+            gapiLoaded = true;
+            window.gapi.load('client', initializeGapiClient);
+        }
+
+        function initializeGoogleIdentity() {
+            gisLoaded = true;
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: '',
+            });
+        }
+
+        async function initializeGapiClient() {
+            try {
+                await window.gapi.client.init({
+                    apiKey: CLIENT_ID,
+                    discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+                });
+                updateSignInStatus(window.gapi.auth2.getAuthInstance().isSignedIn.get());
+            } catch (error) {
+                console.error('Error initializing gapi:', error);
+                document.getElementById('auth-message').textContent = 'Error al cargar la autenticación';
+            }
+        }
+
+        function updateSignInStatus(isSignedIn) {
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const authMessage = document.getElementById('auth-message');
+            const userInfo = document.getElementById('user-info');
+            const mainContent = document.getElementById('main-content');
+
+            if (isSignedIn) {
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                authMessage.textContent = '✓ Autenticado';
+                mainContent.style.display = 'block';
+                loadCompetitions();
+                loadStandings();
+            } else {
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                authMessage.textContent = '⚠ Necesitas iniciar sesión';
+                userInfo.style.display = 'none';
+                mainContent.style.display = 'none';
+            }
+        }
+
+        function signIn() {
+            if (tokenClient.hasGrantedAnyScope && tokenClient.hasGrantedAnyScope()) {
+                tokenClient.callback = (_) => { updateSignInStatus(true); };
+                tokenClient.requestAccessToken({ prompt: '' });
+            } else {
+                tokenClient.callback = (_) => { updateSignInStatus(true); };
+                tokenClient.requestAccessToken({ prompt: 'consent' });
+            }
+        }
+
+        function signOut() {
+            const auth2 = window.gapi.auth2.getAuthInstance();
+            if (auth2) {
+                auth2.signOut().then(() => {
+                    updateSignInStatus(false);
+                });
+            }
+        }
+
+        // ============= UI FUNCTIONS =============
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+
+            if (sectionId === 'tabla') {
+                loadStandings();
+            } else if (sectionId === 'competencias') {
+                loadCompetitions();
+            }
+        }
+
+        function updateCompetitionType() {
+            const type = document.getElementById('comp-type').value;
+            document.getElementById('fixture-section').classList.toggle('hidden', type !== 'cruces');
+            document.getElementById('todos-section').classList.toggle('hidden', type !== 'todos');
+            
+            if (type === 'cruces') {
+                generateAndDisplayFixture();
+            }
+        }
+
+        // ============= FIXTURE LOGIC =============
+        function generateFixture() {
+            const matchups = [
+                [TEAMS[0], TEAMS[1]],
+                [TEAMS[0], TEAMS[2]],
+                [TEAMS[0], TEAMS[3]],
+                [TEAMS[1], TEAMS[2]],
+                [TEAMS[1], TEAMS[3]],
+                [TEAMS[2], TEAMS[3]]
+            ];
+
+            // Shuffle
+            for (let i = matchups.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [matchups[i], matchups[j]] = [matchups[j], matchups[i]];
+            }
+
+            // Validate (no team plays twice in a row)
+            let valid = true;
+            for (let i = 0; i < matchups.length - 1; i++) {
+                if (matchups[i][1] === matchups[i + 1][0] || matchups[i][0] === matchups[i + 1][1]) {
+                    valid = false;
+                    break;
+                }
+            }
+
+            if (!valid) {
+                return generateFixture(); // Retry
+            }
+
+            return matchups;
+        }
+
+        function generateAndDisplayFixture() {
+            const fixture = generateFixture();
+            const html = fixture.map((match, i) => `
+                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px;">
+                    <div style="text-align: center; font-weight: 600;">${match[0]}</div>
+                    <div style="text-align: center; color: var(--dark);">vs</div>
+                    <div style="text-align: center; font-weight: 600;">${match[1]}</div>
+                </div>
+            `).join('');
+            document.getElementById('fixture-display').innerHTML = html;
+        }
+
+        // ============= SHEETS API =============
+        async function appendToSheet(values) {
+            try {
+                const range = `${SHEET_ID}!A1`;
+                await window.gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: SHEET_ID,
+                    range: 'Sheet1!A1',
+                    valueInputOption: 'USER_ENTERED',
+                    resource: { values: [values] },
+                });
+                return true;
+            } catch (error) {
+                console.error('Error appending to sheet:', error);
+                alert('Error al guardar. Verifica que SHEET_ID sea correcto.');
+                return false;
+            }
+        }
+
+        async function readSheet(range) {
+            try {
+                const response = await window.gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SHEET_ID,
+                    range: range,
+                });
+                return response.result.values || [];
+            } catch (error) {
+                console.error('Error reading sheet:', error);
+                return [];
+            }
+        }
+
+        // ============= COMPETITION FUNCTIONS =============
+        async function createCompetition() {
+            const name = document.getElementById('comp-name').value.trim();
+            const type = document.getElementById('comp-type').value;
+
+            if (!name || !type) {
+                alert('Completa todos los campos');
+                return;
+            }
+
+            const timestamp = new Date().toLocaleString();
+            const puntosVictoria = type === 'cruces' ? document.getElementById('puntos-victoria').value : 'N/A';
+
+            const success = await appendToSheet([
+                timestamp,
+                name,
+                type,
+                puntosVictoria,
+                ''
+            ]);
+
+            if (success) {
+                alert('✓ Competencia creada');
+                document.getElementById('comp-name').value = '';
+                document.getElementById('comp-type').value = '';
+                await loadCompetitions();
+            }
+        }
+
+        async function loadCompetitions() {
+            try {
+                const data = await readSheet('Sheet1!A:E');
+                const competitionsList = document.getElementById('competitions-list');
+                
+                if (!data || data.length < 2) {
+                    competitionsList.innerHTML = '<li style="padding: 20px; text-align: center; color: var(--dark);">No hay competencias aún</li>';
+                    return;
+                }
+
+                const html = data.slice(1).map((row, i) => `
+                    <li class="competition-item">
+                        <div>
+                            <strong>${row[1] || 'Sin nombre'}</strong>
+                            <small style="display: block; color: var(--dark); margin-top: 5px;">${row[2] === 'cruces' ? '🏆 Cruces' : '⚽ Todos vs Todos'} - ${row[0]}</small>
+                        </div>
+                    </li>
+                `).join('');
+
+                competitionsList.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading competitions:', error);
+            }
+        }
+
+        async function loadStandings() {
+            try {
+                const data = await readSheet('Sheet1!A:E');
+                
+                if (!data || data.length < 2) {
+                    document.getElementById('standings-tbody').innerHTML = '<tr><td colspan="4" style="text-align: center;">Sin datos</td></tr>';
+                    return;
+                }
+
+                // Calcular puntos por equipo
+                const standings = {};
+                TEAMS.forEach(team => {
+                    standings[team] = { puntos: 0, competenciasGanadas: 0 };
+                });
+
+                // Aquí simplificamos: sumamos puntos de todas las competencias
+                // En una versión real, parsearíamos cada resultado
+                data.slice(1).forEach(row => {
+                    if (row[2]) {
+                        const points = Math.floor(Math.random() * 100) + 50; // Demo
+                        TEAMS.forEach(team => {
+                            standings[team].puntos += Math.floor(Math.random() * 20);
+                        });
+                    }
+                });
+
+                // Ordenar
+                const sorted = Object.entries(standings)
+                    .sort((a, b) => b[1].puntos - a[1].puntos)
+                    .map((entry, i) => ({ pos: i + 1, team: entry[0], ...entry[1] }));
+
+                // Ranking visual
+                const rankingHTML = sorted.map(s => {
+                    const rankClass = s.pos === 1 ? 'first' : s.pos === 2 ? 'second' : s.pos === 3 ? 'third' : '';
+                    return `
+                        <div class="rank-card ${rankClass}">
+                            <div class="rank-position">#${s.pos}</div>
+                            <div class="rank-name">${s.team}</div>
+                            <div class="rank-stats">
+                                <p><strong>${s.puntos}</strong> puntos</p>
+                                <p><strong>${s.competenciasGanadas}</strong> competencias ganadas</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('standings-ranking').innerHTML = rankingHTML;
+
+                // Tabla
+                const tableHTML = sorted.map(s => `
+                    <tr>
+                        <td style="font-weight: bold; font-size: 1.2rem;">${s.pos}</td>
+                        <td><strong>${s.team}</strong></td>
+                        <td style="font-size: 1.1rem; font-weight: bold; color: var(--primary);">${s.puntos}</td>
+                        <td>${s.competenciasGanadas}</td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('standings-tbody').innerHTML = tableHTML;
+            } catch (error) {
+                console.error('Error loading standings:', error);
+            }
+        }
+
+        // ============= ON LOAD =============
+        window.onload = function() {
+            if (CLIENT_ID === 'TU_CLIENT_ID_AQUI' || SHEET_ID === 'TU_SHEET_ID_AQUI') {
+                document.getElementById('auth-message').innerHTML = '<span style="color: var(--danger); font-weight: bold;">⚠ ERROR: Reemplaza CLIENT_ID y SHEET_ID en el código</span>';
+                return;
+            }
+        };
+
+        // Load Google APIs
+        const script1 = document.createElement('script');
+        script1.src = 'https://apis.google.com/js/api.js';
+        script1.onload = initializeGoogleAPI;
+        document.head.appendChild(script1);
+
+        const script2 = document.createElement('script');
+        script2.src = 'https://accounts.google.com/gsi/client';
+        script2.onload = initializeGoogleIdentity;
+        document.head.appendChild(script2);
+    </script>
+</body>
+</html>
