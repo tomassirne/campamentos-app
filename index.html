@@ -547,11 +547,20 @@
                 body: JSON.stringify(payload)
             });
 
+            const text = await response.text();
+            console.log('Respuesta cruda API:', text);
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error(`Respuesta no JSON: ${text}`);
+            }
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            const data = await response.json();
             if (!data.ok) {
                 throw new Error(data.error || 'Error desconocido en POST');
             }
