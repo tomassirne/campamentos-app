@@ -638,7 +638,7 @@
                 
                 const response = await gapi.client.sheets.spreadsheets.values.append({
                     spreadsheetId: SHEET_ID,
-                    range: '${SHEET_NAME}!A:E', // BUGFIX: cambié de A1 a A:E
+                    range: `${SHEET_NAME}!A:E`, // BUGFIX: cambié de A1 a A:E
                     valueInputOption: 'USER_ENTERED',
                     resource: { 
                         values: [values] 
