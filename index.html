@@ -457,6 +457,7 @@
         // REEMPLAZA ESTOS VALORES CON LOS TUYOS
         const CLIENT_ID = '182667805267-qid2csk9qhpte4380me9easnn1ngbadn.apps.googleusercontent.com';
         const SHEET_ID = '1l7EYOH99Yq16E3OvYn9SZkf5OVsWYcPt-eqMi1vJxWk';
+        const SHEET_NAME = 'Tabla de Posiciones';
         // ====================================
 
         const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
@@ -637,7 +638,7 @@
                 
                 const response = await gapi.client.sheets.spreadsheets.values.append({
                     spreadsheetId: SHEET_ID,
-                    range: 'Sheet1!A:E', // BUGFIX: cambié de A1 a A:E
+                    range: '${SHEET_NAME}!A:E', // BUGFIX: cambié de A1 a A:E
                     valueInputOption: 'USER_ENTERED',
                     resource: { 
                         values: [values] 
@@ -686,7 +687,8 @@
             }
 
             const timestamp = new Date().toLocaleString();
-            const puntosVictoria = type === 'cruces' ? document.getElementById('puntos-victoria').value : 'N/A';
+            //const puntosVictoria = type === 'cruces' ? document.getElementById('puntos-victoria').value : 'N/A';
+            const puntosVictoria = type === 'todos'  ? document.getElementById('puntos-victoria').value : 'N/A';
 
             const success = await appendToSheet([
                 timestamp,
@@ -708,7 +710,7 @@
 
         async function loadCompetitions() {
             try {
-                const data = await readSheet('Sheet1!A:E');
+                const data = await readSheet(`${SHEET_NAME}!A:E`);
                 const competitionsList = document.getElementById('competitions-list');
                 
                 if (!data || data.length < 2) {
@@ -733,7 +735,7 @@
 
         async function loadStandings() {
             try {
-                const data = await readSheet('Sheet1!A:E');
+                const data = await readSheet(`${SHEET_NAME}!A:E`);
                 
                 if (!data || data.length < 2) {
                     document.getElementById('standings-tbody').innerHTML = '<tr><td colspan="4" style="text-align: center;">Sin datos aún</td></tr>';
