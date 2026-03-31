@@ -367,19 +367,14 @@
             <h1>⚽ Gestor de Campeonatos</h1>
             <div class="auth-status">
                 <div id="auth-message">Inicializando...</div>
-                <div class="user-info" id="user-info" style="display:none;"></div>
-            </div>
-            <div class="button-group">
-                <button class="btn-primary" id="login-btn" onclick="signIn()" style="display: none;">Iniciar Sesión</button>
-                <button class="btn-danger" id="logout-btn" onclick="signOut()" style="display: none;">Cerrar Sesión</button>
             </div>
         </header>
 
         <div id="main-content" style="display: none;">
             <div class="tabs">
-                <button class="tab-btn active" onclick="showSection('crear')">+ Crear Competencia</button>
-                <button class="tab-btn" onclick="showSection('competencias')">Competencias Activas</button>
-                <button class="tab-btn" onclick="showSection('tabla')">Tabla de Posiciones</button>
+                <button class="tab-btn active" onclick="showSection('crear', this)">+ Crear Competencia</button>
+                <button class="tab-btn" onclick="showSection('competencias', this)">Competencias Activas</button>
+                <button class="tab-btn" onclick="showSection('tabla', this)">Tabla de Posiciones</button>
             </div>
 
             <!-- SECCIÓN: CREAR COMPETENCIA -->
@@ -454,128 +449,28 @@
 
     <script>
         // ============= CONFIG =============
-        // REEMPLAZA ESTOS VALORES CON LOS TUYOS
-        const CLIENT_ID = '182667805267-qid2csk9qhpte4380me9easnn1ngbadn.apps.googleusercontent.com';
-        const SHEET_ID = '1l7EYOH99Yq16E3OvYn9SZkf5OVsWYcPt-eqMi1vJxWk';
-        const SHEET_NAME = 'Tabla de Posiciones';
-        // ====================================
-
-        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+        const APP_SCRIPT_URL = 'PEGAR_AQUI_TU_URL_EXEC';
         const TEAMS = ['Azul', 'Rojo', 'Amarillo', 'Verde'];
-
-        let tokenClient;
-        let accessToken = null;
 
         // ============= INIT =============
         async function initializeApp() {
-            // Validar configuración
-            if (CLIENT_ID === 'TU_CLIENT_ID_AQUI' || SHEET_ID === 'TU_SHEET_ID_AQUI') {
-                document.getElementById('auth-message').innerHTML = '<span style="color: var(--danger); font-weight: bold;">⚠ ERROR: Reemplaza CLIENT_ID y SHEET_ID en el código</span>';
-                return;
-            }
+            document.getElementById('auth-message').textContent = '✓ App lista';
+            document.getElementById('main-content').style.display = 'block';
 
-            // Cargar Google Identity Services
-            const script = document.createElement('script');
-            script.src = 'https://accounts.google.com/gsi/client';
-            script.async = true;
-            script.defer = true;
-            script.onload = initializeGoogleIdentity;
-            document.head.appendChild(script);
-
-            // Cargar Google Sheets API
-            const script2 = document.createElement('script');
-            script2.src = 'https://apis.google.com/js/api.js';
-            script2.async = true;
-            script2.defer = true;
-            script2.onload = initializeGoogleAPI;
-            document.head.appendChild(script2);
-
-            // Recuperar token del localStorage si existe
-            const savedToken = localStorage.getItem('campamentos_access_token');
-            if (savedToken) {
-                accessToken = savedToken;
-                setTimeout(() => updateAuthUI(), 1000);
-            }
-        }
-
-        function initializeGoogleIdentity() {
-            try {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: SCOPES,
-                    callback: handleTokenResponse,
-                });
-                console.log('✓ Google Identity initialized');
-                updateAuthUI();
-            } catch (error) {
-                console.error('Error initializing Google Identity:', error);
-            }
-        }
-
-        function initializeGoogleAPI() {
-            gapi.load('client', async () => {
-                try {
-                    await gapi.client.load('sheets', 'v4');
-                    console.log('✓ Google Sheets API loaded');
-                } catch (error) {
-                    console.error('Error loading Sheets API:', error);
-                    document.getElementById('auth-message').textContent = 'Error al cargar Google Sheets API';
-                }
-            });
-        }
-
-        function handleTokenResponse(response) {
-            if (response.access_token) {
-                accessToken = response.access_token;
-                // Guardar token en localStorage para mobile
-                localStorage.setItem('campamentos_access_token', accessToken);
-                console.log('✓ Token obtenido y guardado');
-                updateAuthUI();
-            }
-        }
-
-        function updateAuthUI() {
-            const loginBtn = document.getElementById('login-btn');
-            const logoutBtn = document.getElementById('logout-btn');
-            const authMessage = document.getElementById('auth-message');
-            const mainContent = document.getElementById('main-content');
-
-            if (accessToken) {
-                loginBtn.style.display = 'none';
-                logoutBtn.style.display = 'block';
-                authMessage.textContent = '✓ Autenticado y listo';
-                mainContent.style.display = 'block';
-                loadCompetitions();
-                loadStandings();
-            } else {
-                loginBtn.style.display = 'block';
-                logoutBtn.style.display = 'none';
-                authMessage.innerHTML = '⚠ <strong>Necesitas iniciar sesión</strong>';
-                mainContent.style.display = 'none';
-            }
-        }
-
-        function signIn() {
-            if (tokenClient) {
-                tokenClient.requestAccessToken({ prompt: 'consent' });
-            } else {
-                alert('Google Identity no ha cargado. Intenta en unos segundos.');
-            }
-        }
-
-        function signOut() {
-            accessToken = null;
-            localStorage.removeItem('campamentos_access_token');
-            updateAuthUI();
-            console.log('✓ Sesión cerrada');
+            await loadCompetitions();
+            await loadStandings();
         }
 
         // ============= UI FUNCTIONS =============
-        function showSection(sectionId) {
+        function showSection(sectionId, btn = null) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
             document.getElementById(sectionId).classList.add('active');
-            event.target.classList.add('active');
+
+            if (btn) {
+                btn.classList.add('active');
+            }
 
             if (sectionId === 'tabla') {
                 loadStandings();
@@ -588,7 +483,7 @@
             const type = document.getElementById('comp-type').value;
             document.getElementById('fixture-section').classList.toggle('hidden', type !== 'cruces');
             document.getElementById('todos-section').classList.toggle('hidden', type !== 'todos');
-            
+
             if (type === 'cruces') {
                 generateAndDisplayFixture();
             }
@@ -605,7 +500,6 @@
                 [TEAMS[2], TEAMS[3]]
             ];
 
-            // Shuffle
             for (let i = matchups.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [matchups[i], matchups[j]] = [matchups[j], matchups[i]];
@@ -616,64 +510,53 @@
 
         function generateAndDisplayFixture() {
             const fixture = generateFixture();
-            const html = fixture.map((match, i) => `
+            const html = fixture.map((match) => `
                 <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px;">
                     <div style="text-align: center; font-weight: 600;">${match[0]}</div>
                     <div style="text-align: center; color: var(--dark);">vs</div>
                     <div style="text-align: center; font-weight: 600;">${match[1]}</div>
                 </div>
             `).join('');
+
             document.getElementById('fixture-display').innerHTML = html;
         }
 
-        // ============= SHEETS API =============
-        async function appendToSheet(values) {
-            if (!accessToken) {
-                alert('⚠ No autenticado. Por favor inicia sesión.');
-                return false;
+        // ============= API =============
+        async function apiGet(action) {
+            const url = `${APP_SCRIPT_URL}?action=${encodeURIComponent(action)}`;
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
 
-            try {
-                console.log('Intentando append con:', { SHEET_ID, values });
-                
-                const response = await gapi.client.sheets.spreadsheets.values.append({
-                    spreadsheetId: SHEET_ID,
-                    range: `${SHEET_NAME}!A:E`, // BUGFIX: cambié de A1 a A:E
-                    valueInputOption: 'USER_ENTERED',
-                    resource: { 
-                        values: [values] 
-                    },
-                });
-                
-                console.log('✓ Append exitoso:', response);
-                return true;
-            } catch (error) {
-                console.error('❌ Error completo:', error);
-                
-                // Error más detallado
-                const errorMsg = error.result?.error?.message || error.message;
-                const errorCode = error.result?.error?.code;
-                
-                alert(`❌ Error al guardar:\n\n${errorCode}: ${errorMsg}\n\nVerifica:\n1. SHEET_ID sea correcto\n2. Tu email esté autorizado en el Sheet\n3. Tengas permisos de edición`);
-                return false;
+            const data = await response.json();
+            if (!data.ok) {
+                throw new Error(data.error || 'Error desconocido en GET');
             }
+
+            return data.data;
         }
 
-        async function readSheet(range) {
-            if (!accessToken) {
-                return [];
+        async function apiPost(payload) {
+            const response = await fetch(APP_SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
 
-            try {
-                const response = await gapi.client.sheets.spreadsheets.values.get({
-                    spreadsheetId: SHEET_ID,
-                    range: range,
-                });
-                return response.result.values || [];
-            } catch (error) {
-                console.error('Error reading sheet:', error);
-                return [];
+            const data = await response.json();
+            if (!data.ok) {
+                throw new Error(data.error || 'Error desconocido en POST');
             }
+
+            return data.data;
         }
 
         // ============= COMPETITION FUNCTIONS =============
@@ -686,75 +569,80 @@
                 return;
             }
 
-            const timestamp = new Date().toLocaleString();
-            //const puntosVictoria = type === 'cruces' ? document.getElementById('puntos-victoria').value : 'N/A';
-            const puntosVictoria = type === 'todos'  ? document.getElementById('puntos-victoria').value : 'N/A';
+            const puntosVictoria = type === 'todos'
+                ? Number(document.getElementById('puntos-victoria').value)
+                : null;
 
-            const success = await appendToSheet([
-                timestamp,
-                name,
-                type,
-                puntosVictoria,
-                ''
-            ]);
+            try {
+                await apiPost({
+                    action: 'createCompetition',
+                    name,
+                    type,
+                    puntosVictoria
+                });
 
-            if (success) {
                 alert('✓ Competencia creada exitosamente');
+
                 document.getElementById('comp-name').value = '';
                 document.getElementById('comp-type').value = '';
                 document.getElementById('fixture-section').classList.add('hidden');
                 document.getElementById('todos-section').classList.add('hidden');
+
                 await loadCompetitions();
+                await loadStandings();
+            } catch (error) {
+                console.error('Error creando competencia:', error);
+                alert(`❌ Error al crear competencia:\n\n${error.message}`);
             }
         }
 
         async function loadCompetitions() {
             try {
-                const data = await readSheet(`${SHEET_NAME}!A:E`);
+                const data = await apiGet('getCompetitions');
                 const competitionsList = document.getElementById('competitions-list');
-                
-                if (!data || data.length < 2) {
+
+                if (!data || data.length === 0) {
                     competitionsList.innerHTML = '<li style="padding: 20px; text-align: center; color: var(--dark);">No hay competencias aún. ¡Crea una!</li>';
                     return;
                 }
 
-                const html = data.slice(1).map((row, i) => `
+                const html = data.map((row) => `
                     <li class="competition-item">
                         <div>
-                            <strong>${row[1] || 'Sin nombre'}</strong>
-                            <small style="display: block; color: var(--dark); margin-top: 5px;">${row[2] === 'cruces' ? '🏆 Cruces' : '⚽ Todos vs Todos'} - ${row[0]}</small>
+                            <strong>${row.name || 'Sin nombre'}</strong>
+                            <small style="display: block; color: var(--dark); margin-top: 5px;">
+                                ${row.type === 'cruces' ? '🏆 Cruces' : '⚽ Todos vs Todos'} - ${formatDate(row.timestamp)}
+                            </small>
                         </div>
                     </li>
                 `).join('');
 
-                competitionsList.innerHTML = html || '<li style="padding: 20px; text-align: center;">No hay competencias</li>';
+                competitionsList.innerHTML = html;
             } catch (error) {
                 console.error('Error loading competitions:', error);
+                document.getElementById('competitions-list').innerHTML =
+                    '<li style="padding: 20px; text-align: center; color: var(--danger);">Error cargando competencias</li>';
             }
         }
 
         async function loadStandings() {
             try {
-                const data = await readSheet(`${SHEET_NAME}!A:E`);
-                
-                if (!data || data.length < 2) {
-                    document.getElementById('standings-tbody').innerHTML = '<tr><td colspan="4" style="text-align: center;">Sin datos aún</td></tr>';
+                const data = await apiGet('getStandings');
+
+                if (!data || data.length === 0) {
+                    document.getElementById('standings-tbody').innerHTML =
+                        '<tr><td colspan="4" style="text-align: center;">Sin datos aún</td></tr>';
                     document.getElementById('standings-ranking').innerHTML = '';
                     return;
                 }
 
-                // Demo: mostrar equipos
-                const standings = {};
-                TEAMS.forEach(team => {
-                    standings[team] = { puntos: 0, competenciasGanadas: 0 };
-                });
+                const sorted = [...data]
+                    .sort((a, b) => {
+                        if (b.puntos !== a.puntos) return b.puntos - a.puntos;
+                        return b.competenciasGanadas - a.competenciasGanadas;
+                    })
+                    .map((entry, i) => ({ pos: i + 1, ...entry }));
 
-                // Ordenar
-                const sorted = Object.entries(standings)
-                    .sort((a, b) => b[1].puntos - a[1].puntos)
-                    .map((entry, i) => ({ pos: i + 1, team: entry[0], ...entry[1] }));
-
-                // Ranking visual
                 const rankingHTML = sorted.map(s => {
                     const rankClass = s.pos === 1 ? 'first' : s.pos === 2 ? 'second' : s.pos === 3 ? 'third' : '';
                     return `
@@ -771,7 +659,6 @@
 
                 document.getElementById('standings-ranking').innerHTML = rankingHTML;
 
-                // Tabla
                 const tableHTML = sorted.map(s => `
                     <tr>
                         <td style="font-weight: bold; font-size: 1.2rem;">${s.pos}</td>
@@ -784,10 +671,21 @@
                 document.getElementById('standings-tbody').innerHTML = tableHTML;
             } catch (error) {
                 console.error('Error loading standings:', error);
+                document.getElementById('standings-tbody').innerHTML =
+                    '<tr><td colspan="4" style="text-align: center; color: var(--danger);">Error cargando tabla</td></tr>';
+                document.getElementById('standings-ranking').innerHTML = '';
             }
         }
 
-        // ============= ON LOAD =============
+        function formatDate(value) {
+            if (!value) return 'Sin fecha';
+
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+
+            return date.toLocaleString('es-AR');
+        }
+
         window.addEventListener('load', initializeApp);
     </script>
 </body>
